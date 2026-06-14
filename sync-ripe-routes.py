@@ -51,6 +51,7 @@ existing = {
 
 
 # update routes
+ripe_prefixes = list()
 for asn in cfg['asns']:
     r = requests.get(
         "https://stat.ripe.net/data/announced-prefixes/data.json",
@@ -59,6 +60,7 @@ for asn in cfg['asns']:
 
     for p in r.json()["data"]["prefixes"]:
         prefix = p["prefix"]
+        ripe_prefixes.append(prefix)
         if prefix not in existing:
             route = existing.get(prefix)
             if route:
@@ -82,3 +84,16 @@ for asn in cfg['asns']:
             )
             response.raise_for_status()
             print(response.text,response.status_code)
+
+# delete old routes
+for prefix, route in existing.items():
+    if not route.get("description", "").startswith("Managed by RIPE sync:"):
+        continue
+
+    if prefix in ripe_prefixes:
+        continue
+
+    print(f"Deleting obsolete route {prefix} ({route['id']})")
+    response = session.delete(f"{cfg['netbird']['api_url']}/routes/{route['id']}")
+    response.raise_for_status()
+    print(response.text,response.status_code)
