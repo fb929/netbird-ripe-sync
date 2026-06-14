@@ -11,10 +11,12 @@ import yaml
 
 # load config {{
 scriptName = os.path.basename(sys.argv[0]).split('.')[0]
+scriptDir = os.path.dirname(os.path.abspath(__file__))
 homeDir = expanduser("~")
 defaultConfigFiles = [
     homeDir + '/.' + scriptName + '.yaml',
-    './.config.yaml',
+    os.path.join(os.getcwd(), '.config.yaml'),
+    os.path.join(scriptDir, '.config.yaml'),
 ]
 for configFile in defaultConfigFiles:
     if os.path.isfile(configFile):
